@@ -11,7 +11,7 @@ Getting Started
 #### Clone the repository to your local machine:
 
 ```
-git clone [https://github.com/rohits-web03/Live_Video_recorder.git](https://github.com/rohits-web03/VisionAI_Client.git)
+git clone https://github.com/rohits-web03/VisionAI_Client.git
 ```
 #### Navigate to the project directory:
 
