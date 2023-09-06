@@ -1,11 +1,7 @@
 import React from 'react'
 import {BrowserRouter as Router,Routes,Route} from 'react-router-dom'
 import Home from './Home'
-import CameraRecorder from './Component/CameraRecorder'
-import FaceRecognition from './Component/FaceRecognition'
-import CurrentLocation from './Component/CurrentLocation'
 import { MyProvider } from './Context'
-import Welcome from './Home'
 function App() {
 
   return (
