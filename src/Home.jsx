@@ -1,21 +1,30 @@
-import React, { useState,useRef,useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState,useRef,useEffect, useReducer } from 'react';
+import { useMyContext } from './Context';
 import './Home.css';
+import Chat from './Component/Chat';
 import gif from '/gif/HomePageAnimation.gif';
 import logo from '/images/Logo3.jpg';
+import CameraRecorder from './Component/roadassist';
+import CurrentLocation from './Component/location';
+// import FaceRecognition from './Component/facerecognition.jsx';
     
-const Welcome = () => {
+const Home = () => {
     const [text, setText] = useState('');
     const [recording, setRecording] = useState(false);
-    const [stream, setStream] = useState(null);
+    const [streamAudio, setStreamAudio] = useState(null);
     const [clicked, setClicked] = useState(false);
     const [voicePrompt, setVoicePrompt] = useState(''); // Voice prompt state
     const [show, setShow] = useState(false);
     const voiceText=useRef('');
     const [audio1] = useState(new Audio('./sound/start.mp3'));
     const [audio2] = useState(new Audio('./sound/end.mp3')); 
-    const navigate=useNavigate();
+    const [version,setVersion]=useState(null);
+    const scrollDiv=useRef(null);
+    const [promptDone,setPromptDone]=useState(false);
     const prompt1 = 'How can I help you?';
+    const intro='Hi My name is BlindSightAI.I am designed to assist you';
+    const [messages, setMessages] = useState([{text:intro,user:"AI"}]);
+    const {location,setLocation,stopVidRecording,apiResponse,setApiResponse}=useMyContext();
     
       // Function to animate the voice prompt letter by letter
     const animateVoicePrompt = (textElement) => {
@@ -33,8 +42,8 @@ const Welcome = () => {
 
       const startRecording = async () => {
         try {
-          const audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          setStream(audioStream);
+          const audioStreamAudio = await navigator.mediaDevices.getUserMedia({ audio: true });
+          setStreamAudio(audioStreamAudio);
           setRecording(true);
           audio1.play();
 
@@ -45,7 +54,8 @@ const Welcome = () => {
           recognition.onresult = (event) => {
             const result = event.results[0][0];
             const transcript = result.transcript;
-            setText(transcript);
+            const objUser={text:transcript,user:"User"};
+            setMessages((prevMessages) => [...prevMessages, objUser]);
             voiceText.current = transcript;
           };
     
@@ -61,10 +71,10 @@ const Welcome = () => {
       };
     
       const stopRecording = () => {
-        if (stream) {
-          stream.getTracks().forEach((track) => track.stop());
+        if (streamAudio) {
+          streamAudio.getTracks().forEach((track) => track.stop());
         }
-        setStream(null);
+        setStreamAudio(null);
         setRecording(false);
         audio2.play();
       };
@@ -78,7 +88,13 @@ const Welcome = () => {
         for (let i = 0; i < roadAssist.length; i++) {
           const item = roadAssist[i];
           if (text.includes(item)) {
-            navigate("/Traveling Aid");
+            setVersion('roadAssist');
+            setMessages((prevMessages) => [...prevMessages, {text:"Hold your camera upright.Let's embark on your journey",user:"AI"}]);
+            speakPrompt("Hold your camera upright");
+            speakPrompt("Let's embark on your journey");
+            if(apiResponse){
+              setApiResponse('');
+            }
             break;
           }
         }
@@ -86,7 +102,10 @@ const Welcome = () => {
         for (let i = 0; i < location.length; i++) {
           const item = location[i];
           if (text.includes(item)) {
-            navigate("/Location");
+            setVersion('location');
+            if(location){
+              setLocation(null);
+            }
             break;
           }
         }
@@ -94,9 +113,19 @@ const Welcome = () => {
         for (let i = 0; i < facialRecog.length; i++) {
           const item = facialRecog[i];
           if (text.includes(item)) {
-            navigate("/Face Recognition");
+            setVersion('faceRecog');
+            setMessages((prevMessages) => [...prevMessages, {text:"Face your camera towards the person",user:"AI"}]);
+            speakPrompt("Face your camera towards the person");
+            if(apiResponse){
+              setApiResponse('');
+            }
             break;
           }
+        }
+
+        if(text.includes("stop")){
+          stopVidRecording();
+          setVersion(null);
         }
         
 
@@ -115,7 +144,7 @@ const Welcome = () => {
         setClicked(true);
         setShow(true);
         // animateVoicePrompt(prompt1);
-        setVoicePrompt(prompt1);
+        setMessages((prevMessages) => [...prevMessages, {text:prompt1,user:"AI"}]);
         await speakPrompt(prompt1);
         startRecording();
         setTimeout(() => {
@@ -125,33 +154,73 @@ const Welcome = () => {
         }, 4000);
       };
 
-    
+      const handleLocationData=(data)=>{
+        setMessages((prevMessages) => [...prevMessages, {text:`Your Current location is ${data}`,user:"AI"}]);
+        speakPrompt(`Your Current location is ${data}`);
+      };
+
+      const handleFaceData=(data)=>{
+        setMessages((prevMessages) => [...prevMessages, {text:`${data}`,user:"AI"}]);
+        speakPrompt(`${data}`);
+        stopVidRecording();
+        setVersion(null);
+      };
+
+      const handleYoloData= async (data)=>{
+        if(data.length >2){
+          setMessages((prevMessages) => [...prevMessages, {text:`${data}`,user:"AI"}]);
+        }
+        // if(data.length >2){
+        //   await speakPrompt(`${data}`);
+        //   setPromptDone(true);
+        // }
+      };
+
+      useEffect(()=>{
+          speakPrompt('Hi');
+          speakPrompt('My name is BlindSightAI');
+          speakPrompt('I am designed to assist you');
+
+          return () => {
+            window.speechSynthesis.cancel();
+          };      
+      },[]);
+
+      useEffect(() => {
+        if (scrollDiv.current) {
+          scrollDiv.current.scrollTop = scrollDiv.current.scrollHeight;
+        }
+      }, [messages]);
+      
+
       return (
         <>
           <div id='hm-main'>
-            
-            {/* Gif section */}
-            <div id='gif'>
-                <img id='gifvd' src={gif} alt="GIF" />
+            {(!version)?           
+            <div>              
+              <div id='gif'>
+                <img id='gifvd' src={gif} alt="BlindSightAI Logo" />
+              </div>
             </div>
+            :((version==='roadAssist')? <CameraRecorder onDataReceived={handleYoloData} info={promptDone}/>:((version==='location')?             
+            <div>              
+              <div id='gif'>
+                <img id='gifvd' src={gif} alt="BlindSightAI Logo" />
+              </div>
+              <CurrentLocation onDataReceived={handleLocationData}/>
+            </div>:<FaceRecognition onDataReceived={handleFaceData}/>))}
             {/* heading */}
             <div id='logo'>
-            <img src={logo} id='lg-img' alt="" />
+              <img src={logo} id='lg-img' alt="" />
             </div>
             {(!show) ? (
-              <div className="conv" id='welcome'>Welcome</div>
+                <div ref={scrollDiv} className="conv" id='welcome'>
+                  <h2>AI - <span>{intro}</span></h2>
+                </div>
             ) : (
               {/* Conversetion section */},
-              <div className="conv">
-                <h2>Welcome</h2>
-                <h2>AI - <span></span>{voicePrompt}</h2>
-                <div className='cursor-container'>
-                  <span className="cursor">&#124;</span>
-                </div>
-                <h2>User - <span >{text}</span></h2>
-                <div className='cursor-container'>
-                  <span className="cursor">&#124;</span>
-                </div>
+              <div ref={scrollDiv} className="conv">
+                <Chat messages={messages} />
               </div>
             )}
             {/* Button */}
@@ -161,6 +230,6 @@ const Welcome = () => {
           </div>
         </>
       );
-    };
+    }
     
-    export default Welcome;
+export default Home;
