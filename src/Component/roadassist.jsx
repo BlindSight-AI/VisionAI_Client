@@ -39,6 +39,7 @@ const CameraRecorder = (props) => {
       utterance.rate = rate; // Set the desired speech rate
       utterance.onend = resolve;
       synth.current.speak(utterance);
+      console.log("speakin!");
     });
   };
 
@@ -68,8 +69,8 @@ const CameraRecorder = (props) => {
       setApiResponse(JSON.stringify(data));
       const text = JSON.stringify(data);
 
-      console.log(text);
-      if(text.length>2){
+      console.log(text.length);
+      if(text.length>4){
         await speakApiResponse(text, 1.2);
       }
       if (isRecording.current) {
@@ -102,7 +103,7 @@ const CameraRecorder = (props) => {
 
   return (
       <div id="videoContainer">
-        <video className='video' ref={videoRef} style={{ display: 'block', marginBottom: '10px' }} />
+        <video className="video" ref={videoRef} style={{ display: 'block', marginBottom: '10px' }} />
       </div>
   );
 };

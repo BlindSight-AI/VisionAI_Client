@@ -1,28 +1,36 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useMyContext } from '../Context';
+import React, { useState, useEffect, useRef } from "react";
+import { useMyContext } from "../Context";
 
 const FaceRecognition = (props) => {
-  // const [stream, setStream] = useState(null);
-  // const videoRef = useRef(null);
-  // const isRecording = useRef(false);
-  // const [apiResponse, setApiResponse] = useState(null);
-  const {apiResponse,setApiResponse,stream,setStream,videoRef,isRecording,stopVidRecording}=useMyContext();
+  const {
+    apiResponse,
+    setApiResponse,
+    stream,
+    setStream,
+    videoRef,
+    isRecording,
+    stopVidRecording,
+  } = useMyContext();
 
   const startRecording = async () => {
     try {
-      const videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+      const videoStream = await navigator.mediaDevices.getUserMedia({
+        video: true,
+      });
       setStream(videoStream);
 
       // Wait for 2 seconds before starting to capture
       setTimeout(() => {
         videoRef.current.srcObject = videoStream;
         videoRef.current.play();
-        isRecording.current=true;
+        isRecording.current = true;
         // Capture a frame from the video
-        setTimeout(()=>{captureAndSendFrame();},1000);
+        setTimeout(() => {
+          captureAndSendFrame();
+        }, 1000);
       }, 2000); // Wait for 2 seconds
     } catch (error) {
-      console.error('Error accessing camera:', error);
+      console.error("Error accessing camera:", error);
       isRecording.current = false;
     }
   };
@@ -31,32 +39,34 @@ const FaceRecognition = (props) => {
     try {
       if (!videoRef.current || !isRecording.current) return;
 
-      const canvas = document.createElement('canvas');
+      const canvas = document.createElement("canvas");
       canvas.width = videoRef.current.videoWidth;
       canvas.height = videoRef.current.videoHeight;
-      canvas.getContext('2d').drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-      const frameDataURL = canvas.toDataURL('image/jpeg');
+      canvas
+        .getContext("2d")
+        .drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+      const frameDataURL = canvas.toDataURL("image/jpeg");
 
-      const base64Frame = frameDataURL.split(',')[1];
+      const base64Frame = frameDataURL.split(",")[1];
 
-      console.log(base64Frame);
+      // console.log(base64Frame);
 
-      const response = await fetch('http://127.0.0.1:8000/facerecognize', {
-        method: 'POST',
+      const response = await fetch("http://127.0.0.1:8000/facerecognize", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ imagedata: base64Frame }),
       });
 
       const data = await response.json();
       setApiResponse(JSON.stringify(data));
-      console.log('API Response:', data);
+      console.log("API Response:", data);
       if (data) {
         stopVidRecording();
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error("Error:", error);
     }
   };
 
@@ -69,14 +79,14 @@ const FaceRecognition = (props) => {
   //     videoRef.current.srcObject = null;
   //     isRecording.current=false;
   //   }
-    
+
   // };
 
-  const sendData=()=>{
-    if(apiResponse){
+  const sendData = () => {
+    if (apiResponse) {
       props.onDataReceived(apiResponse);
     }
-  }
+  };
 
   useEffect(() => {
     startRecording();
@@ -85,15 +95,19 @@ const FaceRecognition = (props) => {
     };
   }, []);
 
-  useEffect(()=>{
-    if(!isRecording.current){
+  useEffect(() => {
+    if (!isRecording.current) {
       startRecording();
     }
     sendData();
-  },[apiResponse]);
+  }, [apiResponse]);
 
   return (
-      <video ref={videoRef} style={{ display: 'block', marginBottom: '10px'  }}></video>
+    <video
+      className="video"
+      ref={videoRef}
+      style={{ display: "block", marginBottom: "10px" }}
+    ></video>
   );
 };
 

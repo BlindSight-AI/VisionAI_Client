@@ -219,3 +219,25 @@
   font-size: 20px;
   
 }
+
+/* responsive design for mobile */
+@media screen and (max-width: 768px) {
+  .conv {
+    height: 500px;
+    width: 400px;
+    /* border: 2px solid red; */
+    color: aliceblue;
+    margin-top: 10px;
+    overflow: auto;
+  }
+  .hm-btn {
+    margin-top: 20px;
+    max-height: 120px;
+    overflow: hidden;
+  }
+  #hm-btn-s{
+    width: 115vw;
+    margin-top: 10px;
+    padding-top: 50px;
+}
+};
