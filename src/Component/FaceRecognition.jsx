@@ -83,9 +83,7 @@ const FaceRecognition = (props) => {
   // };
 
   const sendData = () => {
-    if (apiResponse) {
       props.onDataReceived(apiResponse);
-    }
   };
 
   useEffect(() => {
@@ -99,7 +97,9 @@ const FaceRecognition = (props) => {
     if (!isRecording.current) {
       startRecording();
     }
-    sendData();
+    if(apiResponse){
+      sendData();
+    }
   }, [apiResponse]);
 
   return (
