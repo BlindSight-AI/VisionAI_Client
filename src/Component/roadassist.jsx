@@ -95,9 +95,9 @@ const CameraRecorder = (props) => {
   }, []);
 
   useEffect(()=>{
-    if(!isRecording.current){
-      startRecording();
-    }
+    // if(!isRecording.current){
+    //   startRecording();
+    // }
     sendData();
   },[apiResponse]);
 
