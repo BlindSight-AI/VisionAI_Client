@@ -1,14 +1,14 @@
-import { useState } from 'react'
-import './App.css'
-import VoiceRecord from './Component/VoiceRecord'
+import React from "react";
+import Home from "./Home";
+import { MyProvider } from "./Context";
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
     <>
-      <VoiceRecord/>
+      <MyProvider>
+        <Home />
+      </MyProvider>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
